@@ -77,6 +77,25 @@ export interface DoctorVisitEntry {
   synced?: boolean
 }
 
+export interface MedicationEntry {
+  id?: number
+  babyId: number
+  name: string
+  dose?: string
+  notes?: string
+  at: string
+  synced?: boolean
+}
+
+export interface TemperatureEntry {
+  id?: number
+  babyId: number
+  celsius: number
+  at: string
+  notes?: string
+  synced?: boolean
+}
+
 export class BabyDB extends Dexie {
   babies!: Table<BabyProfile, number>
   feeds!: Table<FeedEntry, number>
@@ -86,6 +105,8 @@ export class BabyDB extends Dexie {
   ketones!: Table<KetoneEntry, number>
   vaccines!: Table<VaccineEntry, number>
   visits!: Table<DoctorVisitEntry, number>
+  medications!: Table<MedicationEntry, number>
+  temperatures!: Table<TemperatureEntry, number>
 
   constructor() {
     super('babytracker')
@@ -98,6 +119,10 @@ export class BabyDB extends Dexie {
       ketones: '++id, babyId, at',
       vaccines: '++id, babyId, date',
       visits: '++id, babyId, date',
+    })
+    this.version(2).stores({
+      medications: '++id, babyId, at',
+      temperatures: '++id, babyId, at',
     })
   }
 }

@@ -5,7 +5,8 @@ import { Onboarding } from './views/Onboarding'
 import { Feed } from './views/Feed'
 import { Diaper } from './views/Diaper'
 import { Sleep } from './views/Sleep'
-import { GrowthHealth } from './views/GrowthHealth'
+import { Growth } from './views/Growth'
+import { Health } from './views/Health'
 import { Reports } from './views/Reports'
 import { Settings } from './views/Settings'
 
@@ -19,7 +20,8 @@ export const routes: RouteObject[] = [
       { path: 'feed', element: <Feed /> },
       { path: 'diaper', element: <Diaper /> },
       { path: 'sleep', element: <Sleep /> },
-      { path: 'growth', element: <GrowthHealth /> },
+  { path: 'growth', element: <Growth /> },
+  { path: 'health', element: <Health /> },
       { path: 'reports', element: <Reports /> },
       { path: 'settings', element: <Settings /> },
     ],

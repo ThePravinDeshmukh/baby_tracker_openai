@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { addDiaper, listDiapers, updateDiaper, deleteDiaper } from '../services/local'
 import { useAppStore } from '../store/useAppStore'
-import { toLocalInputValue, fromLocalInputValue, toLocalDateInputValue } from '../utils/datetime'
+import { toLocalInputValue, fromLocalInputValue, toLocalDateInputValue, formatTime } from '../utils/datetime'
 
 export function Diaper() {
   const [type, setType] = useState<'wet'|'dirty'|'mixed'>('wet')
@@ -12,6 +12,7 @@ export function Diaper() {
   const [filterDate, setFilterDate] = useState(toLocalDateInputValue())
   const [filterType, setFilterType] = useState<'All'|'wet'|'dirty'|'mixed'>('All')
   const [items, setItems] = useState<any[]>([])
+  const [editingItem, setEditingItem] = useState<any|null>(null)
 
   async function onSubmit(e: React.FormEvent){
     e.preventDefault()
@@ -70,61 +71,82 @@ export function Diaper() {
           </select>
         </label>
       </div>
-      <ul className="stack gap" style={{listStyle:'none', padding:0, margin:0}}>
-        {items.map(d => <DiaperItem key={d.id} item={d} onChanged={refresh} />)}
-        {items.length===0 && <li>No diaper entries found.</li>}
-      </ul>
+      <div className="stack gap">
+        {items.map(item => (
+          <DiaperRow key={item.id} item={item} onEdit={setEditingItem} onChanged={refresh} />
+        ))}
+        {items.length===0 && <div className="card">No diaper entries found.</div>}
+      </div>
+
+      {editingItem && (
+        <EditDiaperModal
+          item={editingItem}
+          onClose={()=>setEditingItem(null)}
+          onSaved={()=>{ setEditingItem(null); refresh() }}
+        />
+      )}
     </div>
   )
 }
 
-function IconBtn(props: React.ButtonHTMLAttributes<HTMLButtonElement> & { title?: string, children: React.ReactNode }){
-  return <button className="btn" style={{padding:'.4rem .6rem'}} {...props}>{props.children}</button>
+function DiaperRow({ item, onEdit, onChanged }: { item:any, onEdit:(it:any)=>void, onChanged:()=>void }){
+  const [open, setOpen] = useState(false)
+  async function onDelete(){ if(confirm('Delete this diaper entry?')){ await deleteDiaper(item.id); onChanged() } }
+  return (
+    <div className="feed-entry">
+      <div className="feed-entry-main">
+        <span className="feed-entry-type">{item.type}</span>
+        {item.notes && <span>• {item.notes}</span>}
+      </div>
+      <div className="feed-entry-time">{formatTime(item.at)}</div>
+      <div className="context-menu">
+        <button className="context-menu-btn" onClick={()=>setOpen(!open)} onBlur={()=>setTimeout(()=>setOpen(false),200)}>⋯</button>
+        {open && (
+          <div className="context-menu-dropdown">
+            <button className="context-menu-item" onClick={()=>{ onEdit(item); setOpen(false) }}>Edit</button>
+            <button className="context-menu-item" onClick={()=>{ onDelete(); setOpen(false) }}>Delete</button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
-function DiaperItem({ item, onChanged }: { item: any, onChanged: ()=>void }){
-  const [editing, setEditing] = useState(false)
+function EditDiaperModal({ item, onClose, onSaved }:{ item:any, onClose:()=>void, onSaved:()=>void }){
   const [type, setType] = useState(item.type as 'wet'|'dirty'|'mixed')
   const [notes, setNotes] = useState<string>(item.notes || '')
   const [at, setAt] = useState<string>(toLocalInputValue(new Date(item.at)))
 
-  async function onSave(){
+  async function onSave(e:React.FormEvent){
+    e.preventDefault()
     await updateDiaper(item.id, { type, notes, at: fromLocalInputValue(at).toISOString(), synced:false })
-    setEditing(false)
-    onChanged()
+    onSaved()
   }
-  async function onDelete(){ await deleteDiaper(item.id); onChanged() }
 
-  if (!editing) return (
-    <li className="card">
-      <div><strong>{item.type}</strong></div>
-      {item.notes && <div>{item.notes}</div>}
-      <div style={{color:'var(--muted)'}}>{new Date(item.at).toLocaleString()}</div>
-      <div className="stack" style={{flexDirection:'row', gap:'.4rem', marginTop:'.5rem'}}>
-        <IconBtn onClick={()=>setEditing(true)} title="Edit">✏️</IconBtn>
-        <IconBtn onClick={onDelete} title="Delete">🗑️</IconBtn>
-      </div>
-    </li>
-  )
   return (
-    <li className="card">
-      <label>Type
-        <select value={type} onChange={e=>setType(e.target.value as any)}>
-          <option value="wet">Wet</option>
-          <option value="dirty">Dirty</option>
-          <option value="mixed">Mixed</option>
-        </select>
-      </label>
-      <label>Notes
-        <input value={notes} onChange={e=>setNotes(e.target.value)} />
-      </label>
-      <label>Time
-        <input type="datetime-local" value={at} onChange={e=>setAt(e.target.value)} />
-      </label>
-      <div className="stack" style={{flexDirection:'row', gap:'.4rem', marginTop:'.5rem'}}>
-        <IconBtn onClick={onSave} title="Save">💾</IconBtn>
-        <IconBtn onClick={()=>setEditing(false)} title="Cancel">↩️</IconBtn>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <h3>Edit Diaper Entry</h3>
+        <form className="stack gap" onSubmit={onSave}>
+          <label>Type
+            <select value={type} onChange={e=>setType(e.target.value as any)}>
+              <option value="wet">Wet</option>
+              <option value="dirty">Dirty</option>
+              <option value="mixed">Mixed</option>
+            </select>
+          </label>
+          <label>Notes
+            <input value={notes} onChange={e=>setNotes(e.target.value)} />
+          </label>
+          <label>Time
+            <input type="datetime-local" value={at} onChange={e=>setAt(e.target.value)} />
+          </label>
+          <div style={{display:'flex', gap:'.5rem'}}>
+            <button className="btn" type="submit">Save</button>
+            <button type="button" onClick={onClose} style={{padding:'.65rem 1rem', background:'var(--muted)', color:'white', border:'none', borderRadius:'12px'}}>Cancel</button>
+          </div>
+        </form>
       </div>
-    </li>
+    </div>
   )
 }

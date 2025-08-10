@@ -41,8 +41,10 @@ export function AppLayout() {
         <NavLink to="/settings">⚙️</NavLink>
       </header>
       <main className="app-main">
-        <h1 className="page-title">{title}</h1>
-        <Outlet />
+        <div className="container">
+          <h1 className="page-title">{title}</h1>
+          <Outlet />
+        </div>
       </main>
       <nav className="bottom-nav">
         <NavLink to="/">Home</NavLink>
@@ -50,6 +52,7 @@ export function AppLayout() {
         <NavLink to="/diaper">Diaper</NavLink>
         <NavLink to="/sleep">Sleep</NavLink>
         <NavLink to="/growth">Growth</NavLink>
+  <NavLink to="/health">Health</NavLink>
       </nav>
     </div>
   )

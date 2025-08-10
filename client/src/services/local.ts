@@ -1,4 +1,4 @@
-import { db, type BabyProfile, type FeedEntry, type DiaperEntry, type SleepEntry, type GrowthEntry, type KetoneEntry, type VaccineEntry, type DoctorVisitEntry } from '../db/db'
+import { db, type BabyProfile, type FeedEntry, type DiaperEntry, type SleepEntry, type GrowthEntry, type KetoneEntry, type VaccineEntry, type DoctorVisitEntry, type MedicationEntry, type TemperatureEntry } from '../db/db'
 
 export async function createBaby(profile: Omit<BabyProfile,'id'>) {
   const id = await db.babies.add(profile)
@@ -70,6 +70,86 @@ export async function addGrowth(entry: Omit<GrowthEntry,'id'>) { return db.growt
 export async function addKetone(entry: Omit<KetoneEntry,'id'>) { return db.ketones.add(entry) }
 export async function addVaccine(entry: Omit<VaccineEntry,'id'>) { return db.vaccines.add(entry) }
 export async function addVisit(entry: Omit<DoctorVisitEntry,'id'>) { return db.visits.add(entry) }
+
+// Growth lists & mutations
+export async function listGrowth(babyId:number, opts?: { date?: string }){
+  let rows = await db.growth.where('babyId').equals(babyId).toArray()
+  if (opts?.date){
+    rows = rows.filter(r=>{
+      const d = new Date(r.at); const yyyy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}` === opts.date
+    })
+  }
+  rows.sort((a,b)=> new Date(b.at).getTime() - new Date(a.at).getTime())
+  return rows
+}
+export async function updateGrowth(id:number, changes: Partial<GrowthEntry>){ return db.growth.update(id, changes) }
+export async function deleteGrowth(id:number){ return db.growth.delete(id) }
+
+// Ketones
+export async function listKetones(babyId:number, opts?: { date?: string }){
+  let rows = await db.ketones.where('babyId').equals(babyId).toArray()
+  if (opts?.date){
+    rows = rows.filter(r=>{
+      const d = new Date(r.at); const yyyy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}` === opts.date
+    })
+  }
+  rows.sort((a,b)=> new Date(b.at).getTime() - new Date(a.at).getTime())
+  return rows
+}
+export async function updateKetone(id:number, changes: Partial<KetoneEntry>){ return db.ketones.update(id, changes) }
+export async function deleteKetone(id:number){ return db.ketones.delete(id) }
+
+// Vaccines
+export async function listVaccines(babyId:number, opts?: { date?: string }){
+  let rows = await db.vaccines.where('babyId').equals(babyId).toArray()
+  if (opts?.date){ rows = rows.filter(r=> r.date === opts.date) }
+  rows.sort((a,b)=> b.date.localeCompare(a.date))
+  return rows
+}
+export async function updateVaccine(id:number, changes: Partial<VaccineEntry>){ return db.vaccines.update(id, changes) }
+export async function deleteVaccine(id:number){ return db.vaccines.delete(id) }
+
+// Visits
+export async function listVisits(babyId:number, opts?: { date?: string }){
+  let rows = await db.visits.where('babyId').equals(babyId).toArray()
+  if (opts?.date){ rows = rows.filter(r=> r.date === opts.date) }
+  rows.sort((a,b)=> b.date.localeCompare(a.date))
+  return rows
+}
+export async function updateVisit(id:number, changes: Partial<DoctorVisitEntry>){ return db.visits.update(id, changes) }
+export async function deleteVisit(id:number){ return db.visits.delete(id) }
+
+// Health
+export async function addMedication(entry: Omit<MedicationEntry,'id'>){ return db.medications.add(entry) }
+export async function listMedications(babyId:number, opts?: { date?: string }){
+  let rows = await db.medications.where('babyId').equals(babyId).toArray()
+  if (opts?.date){
+    rows = rows.filter(r=>{
+      const d = new Date(r.at); const yyyy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}` === opts.date
+    })
+  }
+  rows.sort((a,b)=> new Date(b.at).getTime() - new Date(a.at).getTime())
+  return rows
+}
+export async function updateMedication(id:number, changes: Partial<MedicationEntry>){ return db.medications.update(id, changes) }
+export async function deleteMedication(id:number){ return db.medications.delete(id) }
+export async function addTemperature(entry: Omit<TemperatureEntry,'id'>){ return db.temperatures.add(entry) }
+export async function listTemperatures(babyId:number, opts?: { date?: string }){
+  let rows = await db.temperatures.where('babyId').equals(babyId).toArray()
+  if (opts?.date){
+    rows = rows.filter(r=>{
+      const d = new Date(r.at); const yyyy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}` === opts.date
+    })
+  }
+  rows.sort((a,b)=> new Date(b.at).getTime() - new Date(a.at).getTime())
+  return rows
+}
+export async function updateTemperature(id:number, changes: Partial<TemperatureEntry>){ return db.temperatures.update(id, changes) }
+export async function deleteTemperature(id:number){ return db.temperatures.delete(id) }
 
 export async function getLastFeed(babyId:number){ return db.feeds.where({babyId}).reverse().sortBy('at').then(arr=>arr.at(-1)) }
 export async function getLastDiaper(babyId:number){ return db.diapers.where({babyId}).reverse().sortBy('at').then(arr=>arr.at(-1)) }

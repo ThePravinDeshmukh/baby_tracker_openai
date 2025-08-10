@@ -18,14 +18,13 @@ export function Feed() {
   async function onSubmit(e: React.FormEvent){
     e.preventDefault()
     if(!babyId) return alert('Please create a baby profile in Onboarding')
-    const showAmount = type !== 'solid'
-    await addFeed({
-      babyId,
-      type,
-      amount: showAmount && amount ? Number(amount) : undefined,
-      notes,
-      at: fromLocalInputValue(at).toISOString(),
-      synced:false
+    await addFeed({ 
+      babyId, 
+      type, 
+      amount: amount ? Number(amount) : undefined, 
+      notes, 
+      at: fromLocalInputValue(at).toISOString(), 
+      synced:false 
     })
     setAmount('')
     setNotes('')
@@ -49,27 +48,16 @@ export function Feed() {
       <form className="stack gap" onSubmit={onSubmit}>
         <label>
           Type
-          <select
-            value={type}
-            onChange={e=>{
-              const v = e.target.value
-              setType(v)
-              if (v === 'solid') setAmount('')
-            }}
-          >
+          <select value={type} onChange={e=>setType(e.target.value)}>
             <option value="bottle">Bottle</option>
             <option value="breast">Breast</option>
             <option value="formula">Formula</option>
-            <option value="semi-solid">Semi solid</option>
-            <option value="solid">Solid</option>
           </select>
         </label>
-        {type !== 'solid' && (
-          <label>
-            Amount (ml)
-            <input value={amount} onChange={e=>setAmount(e.target.value)} placeholder="120" />
-          </label>
-        )}
+        <label>
+          Amount (ml)
+          <input value={amount} onChange={e=>setAmount(e.target.value)} placeholder="120" />
+        </label>
         <label>
           Notes
           <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional notes" />
@@ -95,8 +83,6 @@ export function Feed() {
             <option value="bottle">Bottle</option>
             <option value="breast">Breast</option>
             <option value="formula">Formula</option>
-            <option value="semi-solid">Semi solid</option>
-            <option value="solid">Solid</option>
           </select>
         </label>
       </div>
@@ -170,10 +156,9 @@ function EditFeedModal({ item, onClose, onSaved }: { item: any, onClose: () => v
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault()
-    const showAmount = type !== 'solid'
     await updateFeed(item.id, {
       type,
-      amount: showAmount && amount ? Number(amount) : undefined,
+      amount: amount ? Number(amount) : undefined,
       notes,
       at: fromLocalInputValue(at).toISOString(),
       synced: false
@@ -188,27 +173,16 @@ function EditFeedModal({ item, onClose, onSaved }: { item: any, onClose: () => v
         <form className="stack gap" onSubmit={onSave}>
           <label>
             Type
-            <select
-              value={type}
-              onChange={e=>{
-                const v = e.target.value
-                setType(v)
-                if (v === 'solid') setAmount('')
-              }}
-            >
+            <select value={type} onChange={e=>setType(e.target.value)}>
               <option value="bottle">Bottle</option>
               <option value="breast">Breast</option>
               <option value="formula">Formula</option>
-              <option value="semi-solid">Semi solid</option>
-              <option value="solid">Solid</option>
             </select>
           </label>
-          {type !== 'solid' && (
-            <label>
-              Amount (ml)
-              <input value={amount} onChange={e=>setAmount(e.target.value)} />
-            </label>
-          )}
+          <label>
+            Amount (ml)
+            <input value={amount} onChange={e=>setAmount(e.target.value)} />
+          </label>
           <label>
             Notes
             <input value={notes} onChange={e=>setNotes(e.target.value)} />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { addSleep, listSleeps, updateSleep, deleteSleep } from '../services/local'
 import { useAppStore } from '../store/useAppStore'
-import { toLocalInputValue, fromLocalInputValue, toLocalDateInputValue } from '../utils/datetime'
+import { toLocalInputValue, fromLocalInputValue, toLocalDateInputValue, formatTime } from '../utils/datetime'
 
 export function Sleep() {
   const [start, setStart] = useState<string>(toLocalInputValue())
@@ -11,6 +11,7 @@ export function Sleep() {
   const [saved, setSaved] = useState('')
   const [filterDate, setFilterDate] = useState(toLocalDateInputValue())
   const [items, setItems] = useState<any[]>([])
+  const [editingItem, setEditingItem] = useState<any|null>(null)
 
   async function onSubmit(e: React.FormEvent){
     e.preventDefault()
@@ -55,69 +56,84 @@ export function Sleep() {
           <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} />
         </label>
       </div>
-      <ul className="stack gap" style={{listStyle:'none', padding:0, margin:0}}>
-        {items.map(s => <SleepItem key={s.id} item={s} onChanged={refresh} />)}
-        {items.length===0 && <li>No sleep entries found.</li>}
-      </ul>
+      <div className="stack gap">
+        {items.map(item => (
+          <SleepRow key={item.id} item={item} onEdit={setEditingItem} onChanged={refresh} />
+        ))}
+        {items.length===0 && <div className="card">No sleep entries found.</div>}
+      </div>
+
+      {editingItem && (
+        <EditSleepModal
+          item={editingItem}
+          onClose={()=>setEditingItem(null)}
+          onSaved={()=>{ setEditingItem(null); refresh() }}
+        />
+      )}
     </div>
   )
 }
 
-function SleepItem({ item, onChanged }: { item:any, onChanged: ()=>void }){
-  const [editing, setEditing] = useState(false)
+function SleepRow({ item, onEdit, onChanged }:{ item:any, onEdit:(it:any)=>void, onChanged:()=>void }){
+  const [open, setOpen] = useState(false)
+  async function onDelete(){ if(confirm('Delete this sleep entry?')){ await deleteSleep(item.id); onChanged() } }
+  return (
+    <div className="feed-entry">
+      <div className="feed-entry-main">
+        <span className="feed-entry-type">Sleep</span>
+        <span>• {formatTime(item.start)} - {item.end? formatTime(item.end): '-'}</span>
+        {item.notes && <span>• {item.notes}</span>}
+      </div>
+      <div className="feed-entry-time">{formatTime(item.start)}</div>
+      <div className="context-menu">
+        <button className="context-menu-btn" onClick={()=>setOpen(!open)} onBlur={()=>setTimeout(()=>setOpen(false),200)}>⋯</button>
+        {open && (
+          <div className="context-menu-dropdown">
+            <button className="context-menu-item" onClick={()=>{ onEdit(item); setOpen(false) }}>Edit</button>
+            <button className="context-menu-item" onClick={()=>{ onDelete(); setOpen(false) }}>Delete</button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function EditSleepModal({ item, onClose, onSaved }:{ item:any, onClose:()=>void, onSaved:()=>void }){
   const [start, setStart] = useState(toLocalInputValue(new Date(item.start)))
   const [end, setEnd] = useState(item.end? toLocalInputValue(new Date(item.end)) : '')
   const [notes, setNotes] = useState(item.notes || '')
 
-  async function onSave(){
+  async function onSave(e:React.FormEvent){
+    e.preventDefault()
     await updateSleep(item.id, {
       start: fromLocalInputValue(start).toISOString(),
       end: end? fromLocalInputValue(end).toISOString(): undefined,
       notes,
       synced:false,
     })
-    setEditing(false)
-    onChanged()
+    onSaved()
   }
-  async function onDelete(){ await deleteSleep(item.id); onChanged() }
 
-  if (!editing) return (
-    <li className="card">
-      <div><strong>{fmtRange(item.start, item.end)}</strong></div>
-      {item.notes && <div>{item.notes}</div>}
-      <div className="stack" style={{flexDirection:'row', gap:'.4rem', marginTop:'.5rem'}}>
-        <IconBtn onClick={()=>setEditing(true)} title="Edit">✏️</IconBtn>
-        <IconBtn onClick={onDelete} title="Delete">🗑️</IconBtn>
-      </div>
-    </li>
-  )
   return (
-    <li className="card">
-      <label>Start
-        <input type="datetime-local" value={start} onChange={e=>setStart(e.target.value)} />
-      </label>
-      <label>End
-        <input type="datetime-local" value={end} onChange={e=>setEnd(e.target.value)} />
-      </label>
-      <label>Notes
-        <input value={notes} onChange={e=>setNotes(e.target.value)} />
-      </label>
-      <div className="stack" style={{flexDirection:'row', gap:'.4rem', marginTop:'.5rem'}}>
-        <IconBtn onClick={onSave} title="Save">💾</IconBtn>
-        <IconBtn onClick={()=>setEditing(false)} title="Cancel">↩️</IconBtn>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <h3>Edit Sleep Entry</h3>
+        <form className="stack gap" onSubmit={onSave}>
+          <label>Start
+            <input type="datetime-local" value={start} onChange={e=>setStart(e.target.value)} />
+          </label>
+          <label>End
+            <input type="datetime-local" value={end} onChange={e=>setEnd(e.target.value)} />
+          </label>
+          <label>Notes
+            <input value={notes} onChange={e=>setNotes(e.target.value)} />
+          </label>
+          <div style={{display:'flex', gap:'.5rem'}}>
+            <button className="btn" type="submit">Save</button>
+            <button type="button" onClick={onClose} style={{padding:'.65rem 1rem', background:'var(--muted)', color:'white', border:'none', borderRadius:'12px'}}>Cancel</button>
+          </div>
+        </form>
       </div>
-    </li>
+    </div>
   )
-}
-
-function fmtRange(startIso: string, endIso?: string){
-  const s = new Date(startIso)
-  const e = endIso? new Date(endIso): undefined
-  const sStr = s.toLocaleString()
-  const eStr = e? e.toLocaleString(): '-'
-  return `${sStr} → ${eStr}`
-}
-
-function IconBtn(props: React.ButtonHTMLAttributes<HTMLButtonElement> & { title?: string, children: React.ReactNode }){
-  return <button className="btn" style={{padding:'.4rem .6rem'}} {...props}>{props.children}</button>
 }

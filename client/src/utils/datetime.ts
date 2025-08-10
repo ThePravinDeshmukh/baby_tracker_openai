@@ -19,3 +19,25 @@ export function toLocalDateInputValue(d: Date = new Date()): string {
   const dd = pad(d.getDate())
   return `${yyyy}-${mm}-${dd}`
 }
+
+export function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleDateString('en-GB', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  })
+}
+
+export function formatTime(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleTimeString('en-GB', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false
+  })
+}
+
+export function formatDateTime(date: Date | string): string {
+  return `${formatDate(date)} ${formatTime(date)}`
+}
