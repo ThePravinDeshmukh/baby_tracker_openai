@@ -24,7 +24,8 @@
 html,body,#root{ height:100% }
 body{
 	margin:0;
-	font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 14px;
 	background:
 		radial-gradient(1200px 600px at -10% -20%, rgba(124,77,255,.25), transparent 60%),
 		radial-gradient(800px 500px at 120% -10%, rgba(0,229,255,.25), transparent 60%),
@@ -45,7 +46,7 @@ img{ max-width:100% }
 .spacer{ flex:1 }
 .app-main{ flex:1; padding:1rem; padding-bottom:5.5rem; }
 .container{ width:100%; max-width:860px; margin:0 auto; }
-.page-title{ font-size:1.35rem; margin:.25rem 0 1rem 0 }
+.page-title{ font-size:1.15rem; margin:.25rem 0 1rem 0 }
 
 .bottom-nav{
 	position:fixed; bottom:0; left:0; right:0; display:flex; gap:.6rem; padding:.6rem .8rem;
@@ -54,10 +55,13 @@ img{ max-width:100% }
 	border-top:1px solid var(--border);
 }
 .bottom-nav a{
-	flex:1; text-align:center; padding:.55rem .6rem; border-radius:12px; background:var(--card);
-	box-shadow: var(--shadow);
+  flex:1; text-align:center; padding:.4rem .4rem; border-radius:12px; background:var(--card);
+  box-shadow: var(--shadow); display:flex; flex-direction:column; align-items:center; gap:.1rem;
 }
 .bottom-nav a.active{ outline: 2px solid var(--brand); }
+
+.nav-icon{ font-size:1.05rem; line-height:1 }
+.nav-label{ font-size:.7rem; color:var(--muted) }
 
 .stack{ display:flex; flex-direction:column }
 .gap{ gap:.9rem }
@@ -69,12 +73,17 @@ img{ max-width:100% }
 	box-shadow: var(--shadow);
 }
 .btn{
-	display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
-	padding:.65rem 1rem; border-radius:12px;
+  display:inline-flex; align-items:center; justify-content:center; gap:.35rem;
+  padding:.55rem .85rem; border-radius:12px;
 	background: linear-gradient(135deg, var(--brand), var(--brand-2));
-	color:white; text-align:center; border:none;
+  color:white; text-align:center; border:none; font-size:.9rem;
 	box-shadow: var(--shadow);
 }
+/* Quick actions: smaller icon+label */
+.quick-actions{ display:flex; gap:.6rem; flex-wrap:wrap }
+.quick-actions .btn{ gap:.25rem; padding:.45rem .65rem }
+.qa-icon{ font-size:1.05rem; line-height:1 }
+.qa-label{ font-size:.8rem }
 label{ display:flex; flex-direction:column; gap:.35rem; font-weight:600 }
 input,select{
   padding:.7rem .8rem; border-radius:12px; border:1px solid var(--border);
@@ -129,6 +138,10 @@ form{ background:transparent; }
   display:flex; align-items:center; gap:.75rem; padding:.75rem;
   background:var(--card); border:1px solid var(--border);
   border-radius:12px; box-shadow:var(--shadow);
+}
+.icon-badge{
+  width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background: #f3c56b20; border:1px solid var(--border); font-size:1.05rem;
 }
 .activity-entry{ /* same as feed-entry but semantically for timeline */
   display:flex; align-items:center; gap:.75rem; padding:.75rem;

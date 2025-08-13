@@ -47,12 +47,30 @@ export function AppLayout() {
         </div>
       </main>
       <nav className="bottom-nav">
-        <NavLink to="/">Home</NavLink>
-        <NavLink to="/feed">Feed</NavLink>
-        <NavLink to="/diaper">Diaper</NavLink>
-        <NavLink to="/sleep">Sleep</NavLink>
-        <NavLink to="/growth">Growth</NavLink>
-  <NavLink to="/health">Health</NavLink>
+        <NavLink to="/" aria-label="Home">
+          <span className="nav-icon">🏠</span>
+          <span className="nav-label">Home</span>
+        </NavLink>
+        <NavLink to="/feed" aria-label="Feed">
+          <span className="nav-icon">🍼</span>
+          <span className="nav-label">Feed</span>
+        </NavLink>
+        <NavLink to="/diaper" aria-label="Diaper">
+          <span className="nav-icon">🧷</span>
+          <span className="nav-label">Diaper</span>
+        </NavLink>
+        <NavLink to="/sleep" aria-label="Sleep">
+          <span className="nav-icon">😴</span>
+          <span className="nav-label">Sleep</span>
+        </NavLink>
+        <NavLink to="/growth" aria-label="Growth">
+          <span className="nav-icon">📈</span>
+          <span className="nav-label">Growth</span>
+        </NavLink>
+        <NavLink to="/health" aria-label="Health">
+          <span className="nav-icon">🩺</span>
+          <span className="nav-label">Health</span>
+        </NavLink>
       </nav>
     </div>
   )

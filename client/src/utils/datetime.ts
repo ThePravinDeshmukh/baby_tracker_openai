@@ -29,6 +29,15 @@ export function formatDate(date: Date | string): string {
   })
 }
 
+export function formatDateLong(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  // Example: 4 August
+  return d.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long'
+  })
+}
+
 export function formatTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date
   return d.toLocaleTimeString('en-GB', { 
@@ -40,4 +49,10 @@ export function formatTime(date: Date | string): string {
 
 export function formatDateTime(date: Date | string): string {
   return `${formatDate(date)} ${formatTime(date)}`
+}
+
+export function formatTime12(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  // Lowercase am/pm to match mobile style
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()
 }

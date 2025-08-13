@@ -93,10 +93,11 @@ export function Dashboard() {
       <SummaryCards />
 
       <section className="quick-actions">
-        <Link className="btn" to="/feed">+ Feed</Link>
-        <Link className="btn" to="/diaper">+ Diaper</Link>
-        <Link className="btn" to="/sleep">+ Sleep</Link>
-        <Link className="btn" to="/growth">+ Growth</Link>
+        <Link className="btn" to="/feed"><span className="qa-icon">🍼</span><span className="qa-label">Feed</span></Link>
+        <Link className="btn" to="/diaper"><span className="qa-icon">🧷</span><span className="qa-label">Diaper</span></Link>
+        <Link className="btn" to="/sleep"><span className="qa-icon">😴</span><span className="qa-label">Sleep</span></Link>
+        <Link className="btn" to="/growth"><span className="qa-icon">📈</span><span className="qa-label">Growth</span></Link>
+        <Link className="btn" to="/health"><span className="qa-icon">🩺</span><span className="qa-label">Health</span></Link>
       </section>
 
       <section>

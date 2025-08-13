@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { addFeed, listFeeds, updateFeed, deleteFeed } from '../services/local'
 import { useAppStore } from '../store/useAppStore'
-import { toLocalInputValue, fromLocalInputValue, toLocalDateInputValue, formatTime } from '../utils/datetime'
+import { toLocalInputValue, fromLocalInputValue, toLocalDateInputValue, formatTime12, formatDateLong } from '../utils/datetime'
 
 export function Feed() {
   const [type, setType] = useState('bottle')
@@ -106,8 +106,33 @@ export function Feed() {
         </div>
       )}
       <div className="stack gap">
-        {items.map(item => <FeedEntryItem key={item.id} item={item} onEdit={setEditingItem} onChanged={refresh} />)}
-        {items.length===0 && <div className="card">No feed entries found.</div>}
+        {(() => {
+          if (items.length===0) return <div className="card">No feed entries found.</div>
+          // Group by date header like "4 August"
+          const groups: { date: string; rows: any[] }[] = []
+          let last: string | null = null
+          for (const it of items) {
+            const key = formatDateLong(it.at)
+            if (key !== last) { groups.push({ date: key, rows: [it] }); last = key }
+            else groups[groups.length-1].rows.push(it)
+          }
+          return groups.map(g => (
+            <div key={g.date} className="activity-group">
+              <div className="activity-date">{g.date}</div>
+              <div className="stack gap">
+                {g.rows.map((item, idx) => (
+                  <FeedEntryRow
+                    key={item.id}
+                    item={item}
+                    prevAt={g.rows[idx-1]?.at}
+                    onEdit={setEditingItem}
+                    onChanged={refresh}
+                  />
+                ))}
+              </div>
+            </div>
+          ))
+        })()}
       </div>
 
       {editingItem && (
@@ -121,7 +146,7 @@ export function Feed() {
   )
 }
 
-function FeedEntryItem({ item, onEdit, onChanged }: { item: any, onEdit: (item: any) => void, onChanged: () => void }) {
+function FeedEntryRow({ item, prevAt, onEdit, onChanged }: { item: any, prevAt?: string, onEdit: (item: any) => void, onChanged: () => void }) {
   const [showMenu, setShowMenu] = useState(false)
 
   async function onDelete() {
@@ -131,14 +156,27 @@ function FeedEntryItem({ item, onEdit, onChanged }: { item: any, onEdit: (item: 
     }
   }
 
+  // Compute gap from previous entry within the same date group (in minutes/hours)
+  let gap: string | null = null
+  if (prevAt) {
+    const ms = Math.max(0, new Date(item.at).getTime() - new Date(prevAt).getTime())
+    const mins = Math.round(ms / 60000)
+    if (mins >= 60) gap = `${Math.floor(mins/60)}h ${mins%60}m`
+    else if (mins > 0) gap = `${mins}m`
+  }
+
+  const icon = item.type === 'solid' || item.type === 'semi-solid' ? '🥣' : '🍼'
+
   return (
     <div className="feed-entry">
+      <div className="icon-badge">{icon}</div>
       <div className="feed-entry-main">
-        <span className="feed-entry-type">{item.type}</span>
-        {item.amount && <span className="feed-entry-amount">{item.amount}ml</span>}
-        {item.notes && <span>• {item.notes}</span>}
+        <strong>{formatTime12(item.at)}</strong>
+        <span>, {item.type}</span>
+        {item.amount && <span>, {item.amount} ml</span>}
+        {item.notes && <span>, {item.notes}</span>}
       </div>
-      <div className="feed-entry-time">{formatTime(item.at)}</div>
+      <div className="feed-entry-time" style={{minWidth:'3ch', textAlign:'right'}}>{gap ?? ''}</div>
       <div className="context-menu">
         <button 
           className="context-menu-btn" 
